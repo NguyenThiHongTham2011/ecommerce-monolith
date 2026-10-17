@@ -1,0 +1,297 @@
+{
+  "info": {
+    "name": "P2-Phieu-Cham",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "Demo-password-123!",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "X_PID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "Y_PID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "oid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "shipid",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Đăng ký normal-score10",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"fullname\": \"Khach hang cham bai\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('username','rubric2_'+Date.now());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "const j=pm.response.json(); pm.collectionVariables.set('uid',j.uid); pm.test('Role normal',()=>pm.expect(j.role.rolename).eql('normal')); pm.test('Score 10',()=>pm.expect(j.membership.score).eql(10));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Đăng nhập - lưu token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const j=pm.response.json(); pm.test('Có JWT',()=>pm.expect(j.token).to.be.a('string').and.not.empty); pm.collectionVariables.set('token',j.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Xem tài khoản",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/users/me",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const j=pm.response.json(); pm.test('normal/10',()=>{pm.expect(j.role.rolename).eql('normal');pm.expect(j.membership.score).eql(10);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Đặt hàng KHÔNG token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\n      \"pid\": {{X_PID}},\n      \"qty\": 2\n    },\n    {\n      \"pid\": {{Y_PID}},\n      \"qty\": 5\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401',()=>pm.response.to.have.status(401));",
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Đặt X=2 Y=5 CÓ token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\n      \"pid\": {{X_PID}},\n      \"qty\": 2\n    },\n    {\n      \"pid\": {{Y_PID}},\n      \"qty\": 5\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "const j=pm.response.json(); pm.collectionVariables.set('oid',j.oid); pm.test('Hai detail đúng số lượng',()=>{pm.expect(j.details).to.have.lengthOf(2);pm.expect(j.details.find(x=>x.pid===Number(pm.collectionVariables.get('X_PID'))).qty).eql(2);pm.expect(j.details.find(x=>x.pid===Number(pm.collectionVariables.get('Y_PID'))).qty).eql(5);});pm.test('Thời gian hiện hành',()=>pm.expect(Math.abs(Date.now()-Date.parse(j.createat))).below(60000));pm.test('Tự tạo Shipment',()=>{pm.expect(j.shipments.length).above(0);pm.expect(j.shipments[0].status).eql('PENDING');});if(j.shipments?.length)pm.collectionVariables.set('shipid',j.shipments[0].shipid);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Xem đơn-detail-shipment",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orders/{{oid}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const j=pm.response.json();pm.test('Có chi tiết và Shipment',()=>{pm.expect(j.details).to.have.lengthOf(2);pm.expect(j.shipments.length).above(0);});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

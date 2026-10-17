@@ -1,0 +1,30 @@
+{
+  "name": "ecommerce-monolith",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "node prisma/seed.js",
+    "test:integration": "node scripts/integration.js"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.1",
+    "prisma": "7.10.1",
+    "@prisma/adapter-pg": "7.10.1",
+    "pg": "^8.16.3",
+    "express": "^5.1.0",
+    "dotenv": "^16.6.1",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.25.76",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^8.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}
